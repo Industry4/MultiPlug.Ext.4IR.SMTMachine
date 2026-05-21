@@ -1,0 +1,33 @@
+﻿<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>MultiPlug.Ext.4IR.SMTMachine</id>
+    <version>1.0.0</version>
+    <title>SMT Machine Simulator for the MultiPlug .Net Edge Computing Platform</title>
+    <authors>4IR.UK</authors>
+    <owners>4IR.UK</owners>
+    <projectUrl>https://github.com/Industry4/MultiPlug.Ext.4IR.SMTMachine</projectUrl>
+    <icon>images\multiplugico.png</icon>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Simulates SMEMA on a SMT Manufacturing Machine</description>
+    <license type="expression">MIT</license>
+    <repository type="git" url="https://github.com/Industry4/MultiPlug.Ext.4IR.SMTMachine" />
+    <readme>docs\README.md</readme>
+    <releaseNotes>
+1.0.0 First Release</releaseNotes>
+    <copyright>4IR.UK 2026</copyright>
+    <tags>MultiPlug</tags>
+    <dependencies>
+      <group targetFramework=".NETFramework4.7.2">
+        <dependency id="MultiPlug.Base" version="1.0.76" />
+        <dependency id="MultiPlug.Extension.Core" version="1.0.64" />
+        <dependency id="MultiPlug.Core" version="2.2.82" />
+      </group>
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="images\multiplugico.png" target="images\" />
+    <file src="..\..\src\MultiPlug.Ext.4IR.SMTMachine\bin\Release\MultiPlug.Ext.4IR.SMTMachine.dll" target="lib\net472" />
+    <file src="..\..\README.md" target="docs\" />
+  </files>
+</package>
