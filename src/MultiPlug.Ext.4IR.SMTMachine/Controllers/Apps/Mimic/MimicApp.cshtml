@@ -1,0 +1,43 @@
+﻿@model MultiPlug.Base.Http.EdgeApp
+
+<section class="row-fluid">
+    <div class="row-fluid">
+        <div class="box non-collapsible">
+            <div class="row-fluid">
+                <div class="span6">
+                    <h4>Transport State</h4>
+                    <div class="row-fluid">
+                        <div class="well">
+                            <h4><b id="TransportState">@Raw(Model.Extension.Model.TransportStateDescription)</b></h4>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="span6">
+                    <h4>Cover State</h4>
+                    <div class="row-fluid">
+                        <div class="well">
+                            <h4><b id="CoverState">@Raw(Model.Extension.Model.CoverStateDescription)</b></h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<script>
+    window.addEventListener("multiplugReady", function (e) {
+        $.connection.wS.on("Send", function (id, Payload) {
+            if (id == '@Raw(Model.Extension.GetSubscriptionByGuid("TransportStateEventId"))') {
+                $("#TransportState").text(Payload.Subjects[1].Value);
+            }
+            else if (id == '@Raw(Model.Extension.GetSubscriptionByGuid("CoverStateEventId"))') {
+                $("#CoverState").text(Payload.Subjects[1].Value);
+            }
+        });
+    });
+
+    window.addEventListener("multiplugReconnected", function (e) {
+        location.reload();
+    });
+</script>

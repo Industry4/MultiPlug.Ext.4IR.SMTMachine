@@ -18,5 +18,9 @@ namespace MultiPlug.Ext._4IR.SMTMachine.Models
         public Event SMEMADownstreamBadBoardAvailableEvent { get; set; }
         [DataMember]
         public Subscription SMEMADownstreamMachineReadySubscription { get; set; }
+        [DataMember]
+        public Event TransportStateEvent { get; set; }
+        [DataMember]
+        public Event CoverStateEvent { get; set; }
     }
 }

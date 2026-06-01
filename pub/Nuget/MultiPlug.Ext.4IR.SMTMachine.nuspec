@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <id>MultiPlug.Ext.4IR.SMTMachine</id>
-    <version>0.0.1</version>
+    <version>0.0.2</version>
     <title>SMT Machine Simulator for the MultiPlug .Net Edge Computing Platform</title>
     <authors>4IR.UK</authors>
     <owners>4IR.UK</owners>

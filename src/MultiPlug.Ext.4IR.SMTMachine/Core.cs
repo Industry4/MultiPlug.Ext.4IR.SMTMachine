@@ -1,12 +1,7 @@
-﻿using MultiPlug.Base;
-using MultiPlug.Base.Exchange;
+﻿using System.Runtime.Serialization;
+using MultiPlug.Base;
 using MultiPlug.Ext._4IR.SMTMachine.Components.Machine;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.Serialization;
-using System.Text;
-using System.Threading.Tasks;
+using MultiPlug.Ext._4IR.SMTMachine.Models.Load;
 
 namespace MultiPlug.Ext._4IR.SMTMachine
 {
@@ -32,5 +27,13 @@ namespace MultiPlug.Ext._4IR.SMTMachine
 
         [DataMember]
         public MachineComponent Machine = new MachineComponent();
+
+        internal void Load(Root config)
+        {
+            if(config != null && config.Machine != null)
+            {
+                Machine.UpdateProperties(config.Machine);
+            }
+        }
     }
 }

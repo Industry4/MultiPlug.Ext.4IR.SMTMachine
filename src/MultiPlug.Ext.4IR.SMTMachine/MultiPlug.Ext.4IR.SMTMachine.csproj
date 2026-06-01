@@ -49,16 +49,37 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Components\Machine\MachineComponent.cs" />
+    <Compile Include="Controllers\Apps\Mimic\HomeController.cs" />
+    <Compile Include="Controllers\Apps\Mimic\MimicApp.cs" />
+    <Compile Include="Controllers\Settings\Home\HomeController.cs" />
+    <None Include="Controllers\Settings\Home\SettingsHome.cshtml" />
+    <Compile Include="Controllers\Settings\SettingsApp.cs" />
+    <Compile Include="Controllers\SharedRazor\Templates.cs" />
     <Compile Include="Core.cs" />
+    <Compile Include="Models\Apps\MimicAppModel.cs" />
+    <Compile Include="Models\Apps\SettingsHomeModel.cs" />
+    <Compile Include="Models\Load\Root.cs" />
     <Compile Include="Models\MachineProperties.cs" />
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
     <Compile Include="SMTMachine.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Controllers\Apps\Mimic\MimicApp.cshtml" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Controllers\" />
+    <Folder Include="Controllers\Settings\About\" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
