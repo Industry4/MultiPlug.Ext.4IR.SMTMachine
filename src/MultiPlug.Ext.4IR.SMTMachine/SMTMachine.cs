@@ -60,7 +60,8 @@ namespace MultiPlug.Ext._4IR.SMTMachine
                 return new RazorTemplate[]
                 {
                     new RazorTemplate(Templates.AppsMimic, Resources.MimicApp_cshtml),
-                    new RazorTemplate(Templates.SettingsHome, Resources.SettingsHome_cshtml)
+                    new RazorTemplate(Templates.SettingsHome, Resources.SettingsHome_cshtml),
+                    new RazorTemplate(Templates.SettingsAbout, Resources.SettingsAbout_cshtml)
                 };
             }
         }

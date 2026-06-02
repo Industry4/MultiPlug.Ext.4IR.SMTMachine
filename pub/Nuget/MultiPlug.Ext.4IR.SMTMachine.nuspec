@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <id>MultiPlug.Ext.4IR.SMTMachine</id>
-    <version>0.0.2</version>
+    <version>1.0.0</version>
     <title>SMT Machine Simulator for the MultiPlug .Net Edge Computing Platform</title>
     <authors>4IR.UK</authors>
     <owners>4IR.UK</owners>
@@ -14,6 +14,7 @@
     <repository type="git" url="https://github.com/Industry4/MultiPlug.Ext.4IR.SMTMachine" />
     <readme>docs\README.md</readme>
     <releaseNotes>
+1.0.0 Open, Close Covers - Set Process Times - Set all SMEMA Events and Subscriptions
 0.0.1 First Release</releaseNotes>
     <copyright>4IR.UK 2026</copyright>
     <tags>MultiPlug</tags>

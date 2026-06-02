@@ -1,37 +1,92 @@
 ﻿@model MultiPlug.Base.Http.EdgeApp
+<form action="" method="post" accept-charset="utf-8" enctype="application/x-www-form-urlencoded" autocomplete="off">
+    <section class="row-fluid">
+        <div class="row-fluid">
+            <div class="box non-collapsible">
+                <div class="row-fluid">
+                    <div class="span6">
+                        <h4>Transport State</h4>
+                        <div class="row-fluid">
+                            <div class="well">
+                                <h4><b id="TransportState">@Raw(Model.Extension.Model.TransportStateDescription)</b></h4>
+                            </div>
+                        </div>
 
-<section class="row-fluid">
-    <div class="row-fluid">
-        <div class="box non-collapsible">
-            <div class="row-fluid">
-                <div class="span6">
-                    <h4>Transport State</h4>
-                    <div class="row-fluid">
-                        <div class="well">
-                            <h4><b id="TransportState">@Raw(Model.Extension.Model.TransportStateDescription)</b></h4>
+                    </div>
+                    <div class="span6">
+                        <h4>Cover State</h4>
+                        <div class="row-fluid">
+                            <div class="well">
+                                <h4><b id="CoverState">@Raw(Model.Extension.Model.CoverStateDescription)</b></h4>
+                            </div>
                         </div>
                     </div>
-
                 </div>
-                <div class="span6">
-                    <h4>Cover State</h4>
-                    <div class="row-fluid">
-                        <div class="well">
-                            <h4><b id="CoverState">@Raw(Model.Extension.Model.CoverStateDescription)</b></h4>
+
+                <div class="row-fluid">
+                    <div class="span12">
+                        <h4>Actions</h4>
+                        <div class="row-fluid">
+                            <div class="well">
+                                <a class="btn btn-blue btn-cover" href="@Raw(Model.Context.Paths.APIs)cover/">Cover</a>
+                                <a class="btn btn-blue btn-remove" href="@Raw(Model.Context.Paths.APIs)remove/">Remove Board</a>
+                                <a class="btn btn-blue btn-add" href="@Raw(Model.Context.Paths.APIs)add/">Insert Board</a>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="row-fluid">
+                    <div class="span12">
+                        <h4>Timings</h4>
+                        <div class="row-fluid">
+                            <div class="well">
+                                <div class="control-group form-horizontal">
+                                    <label class="control-label" for="inputDurationTransportIn">Transport In [ms]</label>
+                                    <div class="controls">
+                                        <input class="span6" type="number" id="inputDurationTransportIn" name="DurationTransportIn" min="0" max="10000" value="@Model.Extension.Model.DurationTransportIn">
+                                    </div>
+                                </div>
+                                <div class="control-group form-horizontal">
+                                    <label class="control-label" for="inputDurationProcessing">Processing [ms]</label>
+                                    <div class="controls">
+                                        <input class="span6" type="number" id="inputDurationProcessing" name="DurationProcessing" min="0" max="10000" value="@Model.Extension.Model.DurationProcessing">
+                                    </div>
+                                </div>
+                                <div class="control-group form-horizontal">
+                                    <label class="control-label" for="inputDurationTransportOut">Transport Out [ms]</label>
+                                    <div class="controls">
+                                        <input class="span6" type="number" id="inputDurationTransportOut" name="DurationTransportOut" min="0" max="10000" value="@Model.Extension.Model.DurationTransportOut">
+                                    </div>
+                                </div>
+                                <div class="control-group form-horizontal">
+                                    <label class="control-label" for="inputDurationReset">Reset [ms]</label>
+                                    <div class="controls">
+                                        <input class="span6" type="number" id="inputDurationReset" name="DurationReset" min="0" max="10000" value="@Model.Extension.Model.DurationReset">
+                                    </div>
+                                </div>
+                                <div class="row-fluid">
+                                    <button type="submit" value="submit" class="btn btn-green">Save</button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
-</section>
+    </section>
+    </form>
 <script>
     window.addEventListener("multiplugReady", function (e) {
         $.connection.wS.on("Send", function (id, Payload) {
             if (id == '@Raw(Model.Extension.GetSubscriptionByGuid("TransportStateEventId"))') {
                 $("#TransportState").text(Payload.Subjects[1].Value);
             }
-            else if (id == '@Raw(Model.Extension.GetSubscriptionByGuid("CoverStateEventId"))') {
+        });
+
+        $.connection.wS.on("Send", function (id, Payload) {
+            if (id == '@Raw(Model.Extension.GetSubscriptionByGuid("CoverStateEventId"))') {
                 $("#CoverState").text(Payload.Subjects[1].Value);
             }
         });
@@ -39,5 +94,40 @@
 
     window.addEventListener("multiplugReconnected", function (e) {
         location.reload();
+    });
+
+    $(".btn-cover").click(function (event) {
+        event.preventDefault();
+
+        $.post($(this).attr('href'), function (data) {
+        })
+        .done(function () {
+        })
+        .fail(function (xhr, status, error) {
+        });
+    });
+
+    $(".btn-add").click(function (event) {
+        event.preventDefault();
+
+        $.post($(this).attr('href'), function (data) {
+        })
+        .done(function () {
+        })
+        .fail(function (xhr, status, error) {
+            alert("Open the Covers first");
+        });
+    });
+
+    $(".btn-remove").click(function (event) {
+        event.preventDefault();
+
+        $.post($(this).attr('href'), function (data) {
+        })
+        .done(function () {
+        })
+        .fail(function (xhr, status, error) {
+            alert("Open the Covers first");
+        });
     });
 </script>

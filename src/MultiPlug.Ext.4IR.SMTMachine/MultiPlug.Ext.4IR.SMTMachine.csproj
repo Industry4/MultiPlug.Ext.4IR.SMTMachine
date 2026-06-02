@@ -49,15 +49,24 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Components\Machine\MachineComponent.cs" />
+    <Compile Include="Controllers\API\Add\AddController.cs" />
+    <Compile Include="Controllers\API\APIEndpoint.cs" />
+    <Compile Include="Controllers\API\Cover\CoverController.cs" />
+    <Compile Include="Controllers\API\Remove\RemoveController.cs" />
     <Compile Include="Controllers\Apps\Mimic\HomeController.cs" />
     <Compile Include="Controllers\Apps\Mimic\MimicApp.cs" />
+    <Compile Include="Controllers\Settings\About\AboutController.cs" />
     <Compile Include="Controllers\Settings\Home\HomeController.cs" />
+    <None Include="Controllers\Settings\About\SettingsAbout.cshtml" />
     <None Include="Controllers\Settings\Home\SettingsHome.cshtml" />
     <Compile Include="Controllers\Settings\SettingsApp.cs" />
     <Compile Include="Controllers\SharedRazor\Templates.cs" />
     <Compile Include="Core.cs" />
+    <Compile Include="Models\Apps\AboutModel.cs" />
     <Compile Include="Models\Apps\MimicAppModel.cs" />
     <Compile Include="Models\Apps\SettingsHomeModel.cs" />
+    <Compile Include="Models\Exchange\ReadyEvent.cs" />
+    <Compile Include="Models\Exchange\ReadySubscription.cs" />
     <Compile Include="Models\Load\Root.cs" />
     <Compile Include="Models\MachineProperties.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
@@ -72,9 +81,7 @@
     <None Include="Controllers\Apps\Mimic\MimicApp.cshtml" />
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Controllers\Settings\About\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>

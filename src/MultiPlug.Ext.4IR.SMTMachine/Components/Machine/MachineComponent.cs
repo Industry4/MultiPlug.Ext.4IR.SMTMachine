@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using MultiPlug.Base.Exchange;
 using MultiPlug.Ext._4IR.SMTMachine.Models;
+using MultiPlug.Ext._4IR.SMTMachine.Models.Exchange;
 
 namespace MultiPlug.Ext._4IR.SMTMachine.Components.Machine
 {
@@ -26,7 +27,16 @@ namespace MultiPlug.Ext._4IR.SMTMachine.Components.Machine
         {
             Unknown,
             Closed,
-            Open
+            Opening,
+            Open,
+            Closing
+        }
+
+        private enum StartState
+        {
+            Stopped,
+            Starting,
+            Started
         }
 
         internal int TransportStateId
@@ -37,12 +47,11 @@ namespace MultiPlug.Ext._4IR.SMTMachine.Components.Machine
             }
         }
 
-        internal string TransportStateDescription
+        internal string TransportStateDescription()
         {
-            get
-            {
+
                 return TransportStateToString(m_TransportState);
-            }
+
         }
 
         internal int CoverStateId
@@ -53,12 +62,9 @@ namespace MultiPlug.Ext._4IR.SMTMachine.Components.Machine
             }
         }
 
-        internal string CoverStateDescription
+        internal string CoverStateDescription()
         {
-            get
-            {
-                return CoverStateToString(m_CoverState);
-            }
+            return CoverStateToString(m_CoverState);
         }
 
         private TransportState m_TransportState = TransportState.Unknown;
@@ -66,21 +72,26 @@ namespace MultiPlug.Ext._4IR.SMTMachine.Components.Machine
 
         public MachineComponent()
         {
-            SMEMAUpstreamMachineReadyEvent = new Event { Guid = Guid.NewGuid().ToString(), Id = "SMTMachine.MachineReady", Description = "Machine Ready", Subjects = new string[] { "state" }, Group = "Machine" };
-            SMEMADownstreamGoodBoardAvailableEvent = new Event { Guid = Guid.NewGuid().ToString(), Id = "SMTMachine.GoodBoardAvailable", Description = "Good Board Available", Subjects = new string[] { "state" }, Group = "Machine" };
-            SMEMADownstreamBadBoardAvailableEvent = new Event { Guid = Guid.NewGuid().ToString(), Id = "SMTMachine.BadBoardAvailable", Description = "Bad Board Available", Subjects = new string[] { "state" }, Group = "Machine" };
+            SMEMAUpstreamMachineReadyEvent = new ReadyEvent { Guid = Guid.NewGuid().ToString(), Id = "SMTMachine.MachineReady", Description = "Machine Ready", Subjects = new string[] { "state" }, Group = "Machine" };
+            SMEMADownstreamGoodBoardAvailableEvent = new ReadyEvent { Guid = Guid.NewGuid().ToString(), Id = "SMTMachine.GoodBoardAvailable", Description = "Good Board Available", Subjects = new string[] { "state" }, Group = "Machine" };
+            SMEMADownstreamBadBoardAvailableEvent = new ReadyEvent { Guid = Guid.NewGuid().ToString(), Id = "SMTMachine.BadBoardAvailable", Description = "Bad Board Available", Subjects = new string[] { "state" }, Group = "Machine" };
 
-            SMEMAUpstreamGoodBoardAvailableSubscription = new Subscription(Guid.NewGuid().ToString(), "SMEMA-1-B-2[0]");
+            SMEMAUpstreamGoodBoardAvailableSubscription = new ReadySubscription(Guid.NewGuid().ToString(), "SMEMA-1-B-2[0]");
             SMEMAUpstreamGoodBoardAvailableSubscription.Event += OnSMEMAUpstreamGoodBoardAvailable;
 
-            SMEMAUpstreamBadBoardAvailableSubscription = new Subscription(Guid.NewGuid().ToString(), "SMEMA-1-B-3[0]");
+            SMEMAUpstreamBadBoardAvailableSubscription = new ReadySubscription(Guid.NewGuid().ToString(), "SMEMA-1-B-3[0]");
             SMEMAUpstreamBadBoardAvailableSubscription.Event += OnSMEMAUpstreamBadBoardAvailable;
 
-            SMEMADownstreamMachineReadySubscription = new Subscription(Guid.NewGuid().ToString(), "SMEMA-1-A-1[0]");
+            SMEMADownstreamMachineReadySubscription = new ReadySubscription(Guid.NewGuid().ToString(), "SMEMA-1-A-1[0]");
             SMEMADownstreamMachineReadySubscription.Event += OnSMEMADownstreamMachineReady;
 
             TransportStateEvent = new Event { Guid = Guid.NewGuid().ToString(), Id = "SMTMachine.TransportState", Description = "Transport State", Subjects = new string[] { "Id", "Description" }, Group = "Machine" };
             CoverStateEvent = new Event { Guid = Guid.NewGuid().ToString(), Id = "SMTMachine.CoverState", Description = "Cover State", Subjects = new string[] { "Id", "Description" }, Group = "Machine" };
+
+            DurationTransportIn = 1000;
+            DurationProcessing = 2000;
+            DurationTransportOut = 2000;
+            DurationReset = 1000;
         }
 
         private string TransportStateToString(TransportState theTransportState)
@@ -103,7 +114,7 @@ namespace MultiPlug.Ext._4IR.SMTMachine.Components.Machine
                     return "Resetting";
             }
 
-            return "Unknown";
+            return string.Empty;
         }
 
         private string CoverStateToString(CoverState theCoverState)
@@ -116,37 +127,43 @@ namespace MultiPlug.Ext._4IR.SMTMachine.Components.Machine
                     return "Open";
                 case CoverState.Closed:
                     return "Closed";
+                case CoverState.Closing:
+                    return "Closing";
+                case CoverState.Opening:
+                    return "Opening";
             }
 
-            return "Unknown";
+            return string.Empty;
         }
 
         private void ChangeTransportState(TransportState theTransportState)
         {
+            m_TransportState = theTransportState;
+
             Task.Run(() =>
             {
                 TransportStateEvent.Invoke(new Payload(TransportStateEvent.Id, new PayloadSubject[]
                 {
-                new PayloadSubject(TransportStateEvent.Subjects[0], ((int)theTransportState).ToString()),
-                new PayloadSubject(TransportStateEvent.Subjects[1], TransportStateToString(theTransportState))
+                new PayloadSubject(TransportStateEvent.Subjects[0], ((int)m_TransportState).ToString()),
+                new PayloadSubject(TransportStateEvent.Subjects[1], TransportStateToString(m_TransportState))
                 }));
             });
-
-            m_TransportState = theTransportState;
         }
 
         private void ChangeCoverState(CoverState theCoverState)
         {
+            m_CoverState = theCoverState;
+
             Task.Run(() =>
             {
                 CoverStateEvent.Invoke(new Payload(CoverStateEvent.Id, new PayloadSubject[]
                 {
-                new PayloadSubject(CoverStateEvent.Subjects[0], ((int)theCoverState).ToString()),
-                new PayloadSubject(CoverStateEvent.Subjects[1], CoverStateToString(theCoverState))
+                new PayloadSubject(CoverStateEvent.Subjects[0], ((int)m_CoverState).ToString()),
+                new PayloadSubject(CoverStateEvent.Subjects[1], CoverStateToString(m_CoverState))
                 }));
             });
 
-            m_CoverState = theCoverState;
+            StateMachine();
         }
 
         private void MachineReady(bool theState)
@@ -164,11 +181,13 @@ namespace MultiPlug.Ext._4IR.SMTMachine.Components.Machine
             SMEMADownstreamBadBoardAvailableEvent.Invoke(new Payload(SMEMADownstreamBadBoardAvailableEvent.Id, new PayloadSubject[] { new PayloadSubject(SMEMADownstreamBadBoardAvailableEvent.Subjects[0], theState ? "1" : "0") }));
         }
 
-
+        private StartState m_Started = StartState.Stopped;
         internal void Start()
         {
-            Task.Delay(5000).ContinueWith(t =>
+            if(m_Started == StartState.Stopped)
             {
+                m_Started = StartState.Starting;
+
                 if (m_TransportState == TransportState.Unknown)
                 {
                     OnSMEMAUpstreamGoodBoardAvailable(SMEMAUpstreamGoodBoardAvailableSubscription.Cache());
@@ -176,11 +195,11 @@ namespace MultiPlug.Ext._4IR.SMTMachine.Components.Machine
                     OnSMEMADownstreamMachineReady(SMEMADownstreamMachineReadySubscription.Cache());
 
                     ChangeTransportState(TransportState.MachineReady);
-                    ChangeCoverState(CoverState.Closed);
                     MachineReady(true);
-                    StateMachine();
+                    m_Started = StartState.Started;
+                    ChangeCoverState(CoverState.Closed);
                 }
-            });
+            }
         }
 
         bool m_UpstreamGoodBoardAvailable;
@@ -189,70 +208,88 @@ namespace MultiPlug.Ext._4IR.SMTMachine.Components.Machine
 
         private static object m_Lock = new object();
 
-        bool m_TransportingIn;
+        private bool m_TransportingIn;
         private void StartTransportIn()
         {
             m_TransportingIn = true;
-            Task.Delay(1000).ContinueWith(t =>
+            Task.Delay(DurationTransportIn.Value).ContinueWith(t =>
             {
                 m_TransportingIn = false;
                 StateMachine();
             });
         }
 
-        bool m_Processing;
+        private bool m_Processing;
         private void StartProcessing()
         {
             m_Processing = true;
-            Task.Delay(2000).ContinueWith(t =>
+            Task.Delay(DurationProcessing.Value).ContinueWith(t =>
             {
                 m_Processing = false;
                 StateMachine();
             });
         }
 
-        bool m_TransportingOut;
+        private bool m_TransportingOut;
         private void StartTransportOut()
         {
             m_TransportingOut = true;
-            Task.Delay(2000).ContinueWith(t =>
+            Task.Delay(DurationTransportOut.Value).ContinueWith(t =>
             {
                 m_TransportingOut = false;
                 StateMachine();
             });
         }
 
-        bool m_Resetting;
+        private bool m_Resetting;
         private void doReset()
         {
             m_Resetting = true;
-            Task.Delay(1000).ContinueWith(t =>
+            Task.Delay(DurationReset.Value).ContinueWith(t =>
             {
                 m_Resetting = false;
                 StateMachine();
             });
         }
 
-        bool isBadBoard;
+        private bool isBadBoard;
 
         private void StateMachine()
         {
+            if(m_Started != StartState.Started)
+            {
+                return;
+            }
+
             lock(m_Lock)
             {
                 switch(m_TransportState)
                 {
                     case TransportState.MachineReady:
-                        if(m_UpstreamGoodBoardAvailable || m_UpstreamBadBoardAvailable)
+                        switch (m_CoverState)
                         {
-                            isBadBoard = false;
-                            if (m_UpstreamBadBoardAvailable)
-                            {
-                                isBadBoard = true;
-                            }
+                            case CoverState.Closed:
+                                if (m_UpstreamGoodBoardAvailable || m_UpstreamBadBoardAvailable)
+                                {
+                                    isBadBoard = false;
+                                    if (m_UpstreamBadBoardAvailable)
+                                    {
+                                        isBadBoard = true;
+                                    }
 
-                            StartTransportIn();
-                            ChangeTransportState(TransportState.TransportingIn);
+                                    StartTransportIn();
+                                    ChangeTransportState(TransportState.TransportingIn);
 
+                                }
+                                break;
+                            case CoverState.Opening:
+                                MachineReady(false);
+                                ChangeCoverState(CoverState.Open);
+                                break;
+                            case CoverState.Closing:
+                                MachineReady(true);
+                                ChangeCoverState(CoverState.Closed);
+                                break;
                         }
                         break;
 
@@ -260,40 +297,90 @@ namespace MultiPlug.Ext._4IR.SMTMachine.Components.Machine
                         if(m_TransportingIn == false)
                         {
                             MachineReady(false);
-                            StartProcessing();
-                            ChangeTransportState(TransportState.Processing);
+
+                            switch (m_CoverState)
+                            {
+                                case CoverState.Closed:
+                                    StartProcessing();
+                                    ChangeTransportState(TransportState.Processing);
+                                    break;
+                                case CoverState.Opening:
+                                    ChangeCoverState(CoverState.Open);
+                                    break;
+                                case CoverState.Closing:
+                                    ChangeCoverState(CoverState.Closed);
+                                    break;
+                            }
                         }
                         break;
 
                     case TransportState.Processing:
                         if(m_Processing == false)
                         {
-                            if(isBadBoard)
+                            switch(m_CoverState)
                             {
-                                BadBoardAvailable(true);
-                            }
-                            else
-                            {
-                                GoodBoardAvailable(true);
-                            }
+                                case CoverState.Closed:
+                                    if(isBadBoard)
+                                    {
+                                        BadBoardAvailable(true);
+                                    }
+                                    else
+                                    {
+                                        GoodBoardAvailable(true);
+                                    }
 
-                            if(m_DownstreamMachineReady)
-                            {
-                                StartTransportOut();
-                                ChangeTransportState(TransportState.TransportingOut);
-                            }
-                            else
-                            {
-                                ChangeTransportState(TransportState.WaitForMachineReady);
-                            }
+                                    if(m_DownstreamMachineReady)
+                                    {
+                                        StartTransportOut();
+                                        ChangeTransportState(TransportState.TransportingOut);
+                                    }
+                                    else
+                                    {
+                                        ChangeTransportState(TransportState.WaitForMachineReady);
+                                    }
+                                    break;
 
+                                case CoverState.Opening:
+                                    ChangeCoverState(CoverState.Open);
+                                    break;
+                                case CoverState.Closing:
+                                    ChangeCoverState(CoverState.Closed);
+                                    break;
+                            }
                         }
                         break;
                     case TransportState.WaitForMachineReady:
-                        if (m_DownstreamMachineReady)
+                        switch (m_CoverState)
                         {
-                            StartTransportOut();
-                            ChangeTransportState(TransportState.TransportingOut);
+                            case CoverState.Closed:
+                                if (m_DownstreamMachineReady)
+                                {
+                                    StartTransportOut();
+                                    ChangeTransportState(TransportState.TransportingOut);
+                                }
+                                break;
+                            case CoverState.Opening:
+                                if (isBadBoard)
+                                {
+                                    BadBoardAvailable(false);
+                                }
+                                else
+                                {
+                                    GoodBoardAvailable(false);
+                                }
+                                ChangeCoverState(CoverState.Open);
+                                break;
+                            case CoverState.Closing:
+                                if (isBadBoard)
+                                {
+                                    BadBoardAvailable(true);
+                                }
+                                else
+                                {
+                                    GoodBoardAvailable(true);
+                                }
+                                ChangeCoverState(CoverState.Closed);
+                                break;
                         }
                         break;
                     case TransportState.TransportingOut:
@@ -313,25 +400,36 @@ namespace MultiPlug.Ext._4IR.SMTMachine.Components.Machine
                         }
                         break;
                     case TransportState.Reset:
-                        if(m_Resetting == false)
+                        switch (m_CoverState)
                         {
-                            MachineReady(true);
-
-                            if (m_UpstreamGoodBoardAvailable || m_UpstreamBadBoardAvailable)
-                            {
-                                isBadBoard = false;
-                                if (m_UpstreamBadBoardAvailable)
+                            case CoverState.Closed:
+                                if (m_Resetting == false)
                                 {
-                                    isBadBoard = true;
-                                }
+                                    MachineReady(true);
 
-                                StartTransportIn();
-                                ChangeTransportState(TransportState.TransportingIn);
-                            }
-                            else
-                            {
-                                ChangeTransportState(TransportState.MachineReady);
-                            }
+                                    if (m_UpstreamGoodBoardAvailable || m_UpstreamBadBoardAvailable)
+                                    {
+                                        isBadBoard = false;
+                                        if (m_UpstreamBadBoardAvailable)
+                                        {
+                                            isBadBoard = true;
+                                        }
+
+                                        StartTransportIn();
+                                        ChangeTransportState(TransportState.TransportingIn);
+                                    }
+                                    else
+                                    {
+                                        ChangeTransportState(TransportState.MachineReady);
+                                    }
+                                }
+                                break;
+                            case CoverState.Opening:
+                                ChangeCoverState(CoverState.Open);
+                                break;
+                            case CoverState.Closing:
+                                ChangeCoverState(CoverState.Closed);
+                                break;
                         }
                         break;
 
@@ -343,14 +441,14 @@ namespace MultiPlug.Ext._4IR.SMTMachine.Components.Machine
         {
             foreach (var Subject in theEvent.PayloadSubjects)
             {
-                if (Subject.Value.Equals("0", StringComparison.OrdinalIgnoreCase))
+                if (Subject.Value.Equals(SMEMAUpstreamGoodBoardAvailableSubscription.NotReadyValue, StringComparison.OrdinalIgnoreCase))
                 {
                     m_UpstreamGoodBoardAvailable = false;
                     StateMachine();
                     return;
                 }
 
-                if (Subject.Value.Equals("1", StringComparison.OrdinalIgnoreCase))
+                if (Subject.Value.Equals(SMEMAUpstreamGoodBoardAvailableSubscription.ReadyValue, StringComparison.OrdinalIgnoreCase))
                 {
                     m_UpstreamGoodBoardAvailable = true;
                     StateMachine();
@@ -363,14 +461,14 @@ namespace MultiPlug.Ext._4IR.SMTMachine.Components.Machine
         {
             foreach (var Subject in theEvent.PayloadSubjects)
             {
-                if (Subject.Value.Equals("0", StringComparison.OrdinalIgnoreCase))
+                if (Subject.Value.Equals(SMEMAUpstreamBadBoardAvailableSubscription.NotReadyValue, StringComparison.OrdinalIgnoreCase))
                 {
                     m_UpstreamBadBoardAvailable = false;
                     StateMachine();
                     return;
                 }
 
-                if (Subject.Value.Equals("1", StringComparison.OrdinalIgnoreCase))
+                if (Subject.Value.Equals(SMEMAUpstreamBadBoardAvailableSubscription.ReadyValue, StringComparison.OrdinalIgnoreCase))
                 {
                     m_UpstreamBadBoardAvailable = true;
                     StateMachine();
@@ -383,14 +481,14 @@ namespace MultiPlug.Ext._4IR.SMTMachine.Components.Machine
         {
             foreach (var Subject in theEvent.PayloadSubjects)
             {
-                if (Subject.Value.Equals("0", StringComparison.OrdinalIgnoreCase))
+                if (Subject.Value.Equals(SMEMADownstreamMachineReadySubscription.NotReadyValue, StringComparison.OrdinalIgnoreCase))
                 {
                     m_DownstreamMachineReady = false;
                     StateMachine();
                     return;
                 }
 
-                if (Subject.Value.Equals("1", StringComparison.OrdinalIgnoreCase))
+                if (Subject.Value.Equals(SMEMADownstreamMachineReadySubscription.ReadyValue, StringComparison.OrdinalIgnoreCase))
                 {
                     m_DownstreamMachineReady = true;
                     StateMachine();
@@ -406,7 +504,7 @@ namespace MultiPlug.Ext._4IR.SMTMachine.Components.Machine
 
             if (theUpdatedProperties.SMEMAUpstreamMachineReadyEvent != null)
             {
-                if(Event.Merge(SMEMAUpstreamMachineReadyEvent, theUpdatedProperties.SMEMAUpstreamMachineReadyEvent, true))
+                if(ReadyEvent.Merge(SMEMAUpstreamMachineReadyEvent, theUpdatedProperties.SMEMAUpstreamMachineReadyEvent, true))
                 {
                     UpdateEvents = true;
                 }
@@ -414,50 +512,115 @@ namespace MultiPlug.Ext._4IR.SMTMachine.Components.Machine
 
             if (theUpdatedProperties.SMEMAUpstreamGoodBoardAvailableSubscription != null)
             {
-                if(Subscription.Merge(SMEMAUpstreamGoodBoardAvailableSubscription, theUpdatedProperties.SMEMAUpstreamGoodBoardAvailableSubscription))
+                if(ReadySubscription.Merge(SMEMAUpstreamGoodBoardAvailableSubscription, theUpdatedProperties.SMEMAUpstreamGoodBoardAvailableSubscription))
                 {
                     UpdateSubscriptions = true;
                 }
             }
             if (theUpdatedProperties.SMEMAUpstreamBadBoardAvailableSubscription != null)
             {
-                if (Subscription.Merge(SMEMAUpstreamBadBoardAvailableSubscription, theUpdatedProperties.SMEMAUpstreamBadBoardAvailableSubscription))
+                if (ReadySubscription.Merge(SMEMAUpstreamBadBoardAvailableSubscription, theUpdatedProperties.SMEMAUpstreamBadBoardAvailableSubscription))
                 {
                     UpdateSubscriptions = true;
                 }
             }
             if (theUpdatedProperties.SMEMADownstreamGoodBoardAvailableEvent != null)
             {
-                if (Event.Merge(SMEMADownstreamGoodBoardAvailableEvent, theUpdatedProperties.SMEMADownstreamGoodBoardAvailableEvent, true))
+                if (ReadyEvent.Merge(SMEMADownstreamGoodBoardAvailableEvent, theUpdatedProperties.SMEMADownstreamGoodBoardAvailableEvent, true))
                 {
                     UpdateEvents = true;
                 }
             }
             if (theUpdatedProperties.SMEMADownstreamBadBoardAvailableEvent != null)
             {
-                if (Event.Merge(SMEMADownstreamBadBoardAvailableEvent, theUpdatedProperties.SMEMADownstreamBadBoardAvailableEvent, true))
+                if (ReadyEvent.Merge(SMEMADownstreamBadBoardAvailableEvent, theUpdatedProperties.SMEMADownstreamBadBoardAvailableEvent, true))
                 {
                     UpdateEvents = true;
                 }
             }
             if (theUpdatedProperties.SMEMADownstreamMachineReadySubscription != null)
             {
-                if (Subscription.Merge(SMEMADownstreamMachineReadySubscription, theUpdatedProperties.SMEMADownstreamMachineReadySubscription))
+                if (ReadySubscription.Merge(SMEMADownstreamMachineReadySubscription, theUpdatedProperties.SMEMADownstreamMachineReadySubscription))
                 {
                     UpdateSubscriptions = true;
                 }
             }
+            if(theUpdatedProperties.DurationTransportIn != null)
+            {
+                DurationTransportIn = theUpdatedProperties.DurationTransportIn;
+            }
+            if (theUpdatedProperties.DurationProcessing != null)
+            {
+                DurationProcessing = theUpdatedProperties.DurationProcessing;
+            }
+            if (theUpdatedProperties.DurationTransportOut != null)
+            {
+                DurationTransportOut = theUpdatedProperties.DurationTransportOut;
+            }
+            if (theUpdatedProperties.DurationReset != null)
+            {
+                DurationReset = theUpdatedProperties.DurationReset;
+            }
 
-            if(UpdateSubscriptions)
+            if (UpdateSubscriptions)
             {
                 SubscriptionsUpdated?.Invoke();
             }
 
             if(UpdateEvents)
             {
-                SubscriptionsUpdated?.Invoke();
+                EventsUpdated?.Invoke();
             }
 
+        }
+
+        internal void CoverToggle()
+        {
+            switch(m_CoverState)
+            {
+                case CoverState.Closed:
+                    ChangeCoverState(CoverState.Opening);
+                    break;
+                case CoverState.Opening:
+                    ChangeCoverState(CoverState.Closed);
+                    break;
+                case CoverState.Open:
+                    ChangeCoverState(CoverState.Closing);
+                    break;
+                case CoverState.Closing:
+                    ChangeCoverState(CoverState.Open);
+                    break;
+            }
+        }
+
+        internal bool AddBoard()
+        {
+            if(m_CoverState == CoverState.Open)
+            {
+                isBadBoard = false;
+                m_TransportState = TransportState.Processing;
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+
+        }
+
+        internal bool RemoveBoard()
+        {
+            if (m_CoverState == CoverState.Open)
+            {
+                BadBoardAvailable(false);
+                GoodBoardAvailable(false);
+                m_TransportState = TransportState.Reset;
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
     }
 }

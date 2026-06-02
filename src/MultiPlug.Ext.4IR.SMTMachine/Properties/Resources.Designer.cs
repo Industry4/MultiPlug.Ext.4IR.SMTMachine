@@ -62,22 +62,38 @@ namespace MultiPlug.Ext._4IR.SMTMachine.Properties {
         
         /// <summary>
         ///   Looks up a localized string similar to @model MultiPlug.Base.Http.EdgeApp
-        ///
-        ///&lt;section class=&quot;row-fluid&quot;&gt;
-        ///    &lt;div class=&quot;row-fluid&quot;&gt;
-        ///        &lt;div class=&quot;box non-collapsible&quot;&gt;
-        ///            &lt;div class=&quot;row-fluid&quot;&gt;
-        ///                &lt;div class=&quot;span6&quot;&gt;
-        ///                    &lt;h4&gt;Transport State&lt;/h4&gt;
-        ///                    &lt;div class=&quot;row-fluid&quot;&gt;
-        ///                        &lt;div class=&quot;well&quot;&gt;
-        ///                            &lt;h4&gt;&lt;b id=&quot;TransportState&quot;&gt;@Raw(Model.Extension.Model.TransportStateDescription)&lt;/b&gt;&lt;/h4&gt;
-        ///                        &lt;/div&gt;
-        ///              [rest of string was truncated]&quot;;.
+        ///&lt;form action=&quot;&quot; method=&quot;post&quot; accept-charset=&quot;utf-8&quot; enctype=&quot;application/x-www-form-urlencoded&quot; autocomplete=&quot;off&quot;&gt;
+        ///    &lt;section class=&quot;row-fluid&quot;&gt;
+        ///        &lt;div class=&quot;row-fluid&quot;&gt;
+        ///            &lt;div class=&quot;box non-collapsible&quot;&gt;
+        ///                &lt;div class=&quot;row-fluid&quot;&gt;
+        ///                    &lt;div class=&quot;span6&quot;&gt;
+        ///                        &lt;h4&gt;Transport State&lt;/h4&gt;
+        ///                        &lt;div class=&quot;row-fluid&quot;&gt;
+        ///                            &lt;div class=&quot;well&quot;&gt;
+        ///                 [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string MimicApp_cshtml {
             get {
                 return ResourceManager.GetString("MimicApp_cshtml", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to @model MultiPlug.Base.Http.EdgeApp
+        ///
+        ///&lt;link rel=&quot;stylesheet&quot; type=&quot;text/css&quot; href=&quot;@Raw(Model.Context.Paths.Assets)css/settings.min.css&quot;&gt;
+        ///&lt;div class=&quot;row-fluid hermes-heading&quot;&gt;
+        ///    &lt;div class=&quot;box&quot;&gt;
+        ///        &lt;div class=&quot;span2&quot;&gt;
+        ///            &lt;a style=&quot;line-height: 52px;&quot; href=&quot;#&quot;&gt;&lt;img alt=&quot;Hermes Logo&quot; src=&quot;@Raw(Model.Context.Paths.Assets)images/Hermes-small.png&quot;&gt;&lt;/a&gt;
+        ///        &lt;/div&gt;
+        ///        &lt;div class=&quot;span8&quot;&gt;
+        ///            &lt;p style=&quot;font-size:26px; line-height: 54px; text-align: center; margin: 0px;&quot;&gt;Mul [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string SettingsAbout_cshtml {
+            get {
+                return ResourceManager.GetString("SettingsAbout_cshtml", resourceCulture);
             }
         }
         

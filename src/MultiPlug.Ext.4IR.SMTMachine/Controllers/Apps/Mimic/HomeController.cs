@@ -20,9 +20,14 @@ namespace MultiPlug.Ext._4IR.SMTMachine.Controllers.Apps.Mimic
                 Model = new MimicAppModel
                 {
                     TransportStateId = Core.Instance.Machine.TransportStateId,
-                    TransportStateDescription = Core.Instance.Machine.TransportStateDescription,
+                    TransportStateDescription = Core.Instance.Machine.TransportStateDescription(),
                     CoverStateId = Core.Instance.Machine.CoverStateId,
-                    CoverStateDescription = Core.Instance.Machine.CoverStateDescription,
+                    CoverStateDescription = Core.Instance.Machine.CoverStateDescription(),
+                    DurationTransportIn = Core.Instance.Machine.DurationTransportIn.Value,
+                    DurationProcessing = Core.Instance.Machine.DurationProcessing.Value,
+                    DurationTransportOut = Core.Instance.Machine.DurationTransportOut.Value,
+                    DurationReset = Core.Instance.Machine.DurationReset.Value
+
                 },
                 Subscriptions = new Subscription[]
                 {
@@ -35,6 +40,14 @@ namespace MultiPlug.Ext._4IR.SMTMachine.Controllers.Apps.Mimic
 
         public Response Post(MimicAppModel theModel)
         {
+
+            Core.Instance.Machine.UpdateProperties(new Models.MachineProperties
+            {
+                DurationTransportIn = theModel.DurationTransportIn,
+                DurationProcessing = theModel.DurationProcessing,
+                DurationTransportOut = theModel.DurationTransportOut,
+                DurationReset = theModel.DurationReset
+            });
 
             return new Response
             {
