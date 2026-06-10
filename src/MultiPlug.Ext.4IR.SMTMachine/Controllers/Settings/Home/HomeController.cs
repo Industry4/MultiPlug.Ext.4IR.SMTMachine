@@ -52,6 +52,14 @@ namespace MultiPlug.Ext._4IR.SMTMachine.Controllers.Settings.Home
                     MachineReadySubscriptionAvailableValue = Core.Instance.Machine.SMEMADownstreamMachineReadySubscription.ReadyValue,
                     MachineReadySubscriptionNotAvailableValue = Core.Instance.Machine.SMEMADownstreamMachineReadySubscription.NotReadyValue,
                     MachineReadySubscriptionConnected = Core.Instance.Machine.SMEMADownstreamMachineReadySubscription.Connected,
+
+                    AutomaticAdjustmentsEventId = Core.Instance.Machine.AutomaticAdjustmentsEvent.Id,
+                    AutomaticAdjustmentsEventDescription = Core.Instance.Machine.AutomaticAdjustmentsEvent.Description,
+                    AutomaticAdjustmentsEventSubject = Core.Instance.Machine.AutomaticAdjustmentsEvent.Subjects[0],
+                    AutomaticAdjustmentsEventOkayValue = Core.Instance.Machine.AutomaticAdjustmentsEvent.OkayValue,
+
+                    AutomaticAdjustmentsSubscriptionId = Core.Instance.Machine.AutomaticAdjustmentsSubscription.Id,
+                    AutomaticAdjustmentsSubscriptionConnected = Core.Instance.Machine.AutomaticAdjustmentsSubscription.Connected,
                 },
                 Template = Templates.SettingsHome
             };
@@ -107,6 +115,19 @@ namespace MultiPlug.Ext._4IR.SMTMachine.Controllers.Settings.Home
                     Id = theModel.MachineReadySubscriptionId,
                     ReadyValue = theModel.MachineReadySubscriptionAvailableValue,
                     NotReadyValue = theModel.MachineReadySubscriptionNotAvailableValue,
+                },
+
+                AutomaticAdjustmentsEvent = new AdjustmentsEvent
+                {
+                    Id = theModel.AutomaticAdjustmentsEventId,
+                    Description = theModel.AutomaticAdjustmentsEventDescription,
+                    Subjects = new string[] { theModel.AutomaticAdjustmentsEventSubject },
+                    OkayValue = theModel.AutomaticAdjustmentsEventOkayValue
+                },
+
+                AutomaticAdjustmentsSubscription = new Base.Exchange.Subscription
+                {
+                    Id = theModel.AutomaticAdjustmentsSubscriptionId
                 }
             };
 

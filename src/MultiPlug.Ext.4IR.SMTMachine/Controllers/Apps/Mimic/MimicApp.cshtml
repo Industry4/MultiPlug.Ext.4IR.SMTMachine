@@ -1,4 +1,11 @@
 ﻿@model MultiPlug.Base.Http.EdgeApp
+@functions
+{
+    string isEnabled(bool theValue)
+    {
+        return (theValue) ? "checked" : "";
+    }
+}
 <form action="" method="post" accept-charset="utf-8" enctype="application/x-www-form-urlencoded" autocomplete="off">
     <section class="row-fluid">
         <div class="row-fluid">
@@ -13,11 +20,20 @@
                         </div>
 
                     </div>
-                    <div class="span6">
+                    <div class="span3">
                         <h4>Cover State</h4>
                         <div class="row-fluid">
                             <div class="well">
                                 <h4><b id="CoverState">@Raw(Model.Extension.Model.CoverStateDescription)</b></h4>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="span3">
+                        <h4>Width</h4>
+                        <div class="row-fluid">
+                            <div class="well">
+                                <h4><b id="WidthState">@Raw(Model.Extension.Model.WidthDescription)</b></h4>
                             </div>
                         </div>
                     </div>
@@ -66,6 +82,18 @@
                                         <input class="span6" type="number" id="inputDurationReset" name="DurationReset" min="0" max="10000" value="@Model.Extension.Model.DurationReset">
                                     </div>
                                 </div>
+                                <div class="control-group form-horizontal">
+                                    <label class="control-label" for="inputAutomaticAdjustmentsSpeed">Adjust Speed [ms/CM]</label>
+                                    <div class="controls">
+                                        <input class="span6" type="number" id="inputAutomaticAdjustmentsSpeed" name="AutomaticAdjustmentsSpeed" min="0" max="10000" value="@Model.Extension.Model.AutomaticAdjustmentsSpeed">
+                                    </div>
+                                </div>
+                                <div class="control-group form-horizontal">
+                                    <label class="control-label" for="inputAutomaticAdjustmentsFeedback">Adjust Feedback</label>
+                                    <div class="controls">
+                                        <input type="checkbox" id="inputAutomaticAdjustmentsFeedback" name="AutomaticAdjustmentsFeedback" value="true" @isEnabled(Model.Extension.Model.AutomaticAdjustmentsFeedback)>
+                                    </div>
+                                </div>
                                 <div class="row-fluid">
                                     <button type="submit" value="submit" class="btn btn-green">Save</button>
                                 </div>
@@ -76,7 +104,7 @@
             </div>
         </div>
     </section>
-    </form>
+</form>
 <script>
     window.addEventListener("multiplugReady", function (e) {
         $.connection.wS.on("Send", function (id, Payload) {
@@ -88,6 +116,12 @@
         $.connection.wS.on("Send", function (id, Payload) {
             if (id == '@Raw(Model.Extension.GetSubscriptionByGuid("CoverStateEventId"))') {
                 $("#CoverState").text(Payload.Subjects[1].Value);
+            }
+        });
+
+        $.connection.wS.on("Send", function (id, Payload) {
+            if (id == '@Raw(Model.Extension.GetSubscriptionByGuid("WidthStateEventId"))') {
+                $("#WidthState").text(Payload.Subjects[0].Value);
             }
         });
     });

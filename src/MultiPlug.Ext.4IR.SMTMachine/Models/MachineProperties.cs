@@ -31,5 +31,15 @@ namespace MultiPlug.Ext._4IR.SMTMachine.Models
         public int? DurationTransportOut { get; set; }
         [DataMember]
         public int? DurationReset { get; set; }
+        [DataMember]
+        public Subscription AutomaticAdjustmentsSubscription { get; set; }
+        [DataMember]
+        public AdjustmentsEvent AutomaticAdjustmentsEvent { get; set; }
+        [DataMember]
+        public Event WidthStateEvent { get; set; }
+        [DataMember]
+        public int? AutomaticAdjustmentsSpeed { get; set; }
+        [DataMember]
+        public bool? AutomaticAdjustmentsFeedback { get; set; }
     }
 }

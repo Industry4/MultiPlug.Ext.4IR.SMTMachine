@@ -34,7 +34,9 @@ namespace MultiPlug.Ext._4IR.SMTMachine
                     Core.Instance.Machine.CoverStateEvent,
                     Core.Instance.Machine.SMEMAUpstreamMachineReadyEvent,
                     Core.Instance.Machine.SMEMADownstreamGoodBoardAvailableEvent,
-                    Core.Instance.Machine.SMEMADownstreamBadBoardAvailableEvent };
+                    Core.Instance.Machine.SMEMADownstreamBadBoardAvailableEvent,
+                    Core.Instance.Machine.AutomaticAdjustmentsEvent,
+                    Core.Instance.Machine.WidthStateEvent};
             }
         }
 
@@ -44,7 +46,8 @@ namespace MultiPlug.Ext._4IR.SMTMachine
             {
                 return new Subscription[] { Core.Instance.Machine.SMEMAUpstreamGoodBoardAvailableSubscription,
                     Core.Instance.Machine.SMEMAUpstreamBadBoardAvailableSubscription,
-                    Core.Instance.Machine.SMEMADownstreamMachineReadySubscription };
+                    Core.Instance.Machine.SMEMADownstreamMachineReadySubscription,
+                    Core.Instance.Machine.AutomaticAdjustmentsSubscription};
             }
         }
 

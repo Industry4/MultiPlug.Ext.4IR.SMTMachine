@@ -30,5 +30,11 @@ namespace MultiPlug.Ext._4IR.SMTMachine.Models.Apps
         public string MachineReadySubscriptionAvailableValue { get; set; }
         public string MachineReadySubscriptionNotAvailableValue { get; set; }
         public bool MachineReadySubscriptionConnected { get; set; }
+        public string AutomaticAdjustmentsEventId { get; internal set; }
+        public string AutomaticAdjustmentsEventDescription { get; internal set; }
+        public string AutomaticAdjustmentsEventSubject { get; internal set; }
+        public string AutomaticAdjustmentsEventOkayValue { get; internal set; }
+        public string AutomaticAdjustmentsSubscriptionId { get; internal set; }
+        public bool AutomaticAdjustmentsSubscriptionConnected { get; internal set; }
     }
 }

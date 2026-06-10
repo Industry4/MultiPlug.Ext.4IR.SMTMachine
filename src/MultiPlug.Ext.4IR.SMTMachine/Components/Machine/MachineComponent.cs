@@ -20,7 +20,8 @@ namespace MultiPlug.Ext._4IR.SMTMachine.Components.Machine
             Processing,
             WaitForMachineReady,
             TransportingOut,
-            Reset
+            Reset,
+            Adjusting
         }
 
         private enum CoverState
@@ -70,6 +71,8 @@ namespace MultiPlug.Ext._4IR.SMTMachine.Components.Machine
         private TransportState m_TransportState = TransportState.Unknown;
         private CoverState m_CoverState = CoverState.Unknown;
 
+        public float? Width { get; set; } = 0;
+
         public MachineComponent()
         {
             SMEMAUpstreamMachineReadyEvent = new ReadyEvent { Guid = Guid.NewGuid().ToString(), Id = "SMTMachine.MachineReady", Description = "Machine Ready", Subjects = new string[] { "state" }, Group = "Machine" };
@@ -92,6 +95,79 @@ namespace MultiPlug.Ext._4IR.SMTMachine.Components.Machine
             DurationProcessing = 2000;
             DurationTransportOut = 2000;
             DurationReset = 1000;
+
+            AutomaticAdjustmentsEvent = new AdjustmentsEvent{ Guid = Guid.NewGuid().ToString(), Id = "SMTMachine.AutomaticAdjustments", Description = "Automatic Adjustments", Subjects = new string[] { "result" }, Group = "Machine" };
+
+            AutomaticAdjustmentsSubscription = new Subscription(Guid.NewGuid().ToString());
+            AutomaticAdjustmentsSubscription.Event += OnAutomaticAdjustmentsSubscription;
+
+            WidthStateEvent = new Event { Guid = Guid.NewGuid().ToString(), Id = "SMTMachine.WidthState", Description = "Width Value", Subjects = new string[] { "Width" }, Group = "Machine" };
+
+            AutomaticAdjustmentsSpeed = 200;
+            AutomaticAdjustmentsFeedback = true;
+        }
+
+        string NewWidthValue = string.Empty;
+
+        private void OnAutomaticAdjustmentsSubscription(SubscriptionEvent theEvent)
+        {
+            foreach (var Subject in theEvent.PayloadSubjects)
+            {
+                NewWidthValue = Subject.Value;
+            }
+
+            if( NewWidthValue != string.Empty && m_TransportState == TransportState.MachineReady && m_CoverState == CoverState.Closed)
+            {
+                if(isAdjustmentRequired())
+                {
+                    MachineReady(false);
+                    StartAdjusting();
+                    ChangeTransportState(TransportState.Adjusting);
+                }
+            }
+        }
+
+        private bool m_Adjusting;
+        private void StartAdjusting()
+        {
+            m_Adjusting = true;
+
+            float NewWidth;
+
+            float.TryParse(NewWidthValue, out NewWidth);
+
+            var Difference = Width.Value - NewWidth;
+
+            if (NewWidth > Width.Value)
+            {
+                Difference = NewWidth - Width.Value;
+            }
+
+            var Centimeters = Difference / 10; // How many CM is the diff change
+            var WholeCentimeters = Math.Ceiling(Centimeters); // Round it up
+
+            NewWidthValue = string.Empty;
+
+            Task.Delay(AutomaticAdjustmentsSpeed.Value * Convert.ToInt32(WholeCentimeters)).ContinueWith(t =>
+            {
+                Width = NewWidth;
+
+                WidthStateEvent.Invoke(new Payload(WidthStateEvent.Id, new PayloadSubject[]
+                {
+                    new PayloadSubject(WidthStateEvent.Subjects[0], Width.ToString()),
+                }));
+
+                if(AutomaticAdjustmentsFeedback.Value) // Feedback Option
+                {
+                    AutomaticAdjustmentsEvent.Invoke(new Payload(AutomaticAdjustmentsEvent.Id, new PayloadSubject[]
+                    {
+                    new PayloadSubject(AutomaticAdjustmentsEvent.Subjects[0], AutomaticAdjustmentsEvent.OkayValue),
+                    }));
+                }
+
+                m_Adjusting = false;
+                StateMachine();
+            });
         }
 
         private string TransportStateToString(TransportState theTransportState)
@@ -112,6 +188,8 @@ namespace MultiPlug.Ext._4IR.SMTMachine.Components.Machine
                     return "Transporting Out";
                 case TransportState.Reset:
                     return "Resetting";
+                case TransportState.Adjusting:
+                    return "Adjusting Width";
             }
 
             return string.Empty;
@@ -269,7 +347,13 @@ namespace MultiPlug.Ext._4IR.SMTMachine.Components.Machine
                         switch (m_CoverState)
                         {
                             case CoverState.Closed:
-                                if (m_UpstreamGoodBoardAvailable || m_UpstreamBadBoardAvailable)
+                                if(isAdjustmentRequired())
+                                {
+                                    MachineReady(false);
+                                    StartAdjusting();
+                                    ChangeTransportState(TransportState.Adjusting);
+                                }
+                                else if (m_UpstreamGoodBoardAvailable || m_UpstreamBadBoardAvailable)
                                 {
                                     isBadBoard = false;
                                     if (m_UpstreamBadBoardAvailable)
@@ -405,22 +489,30 @@ namespace MultiPlug.Ext._4IR.SMTMachine.Components.Machine
                             case CoverState.Closed:
                                 if (m_Resetting == false)
                                 {
-                                    MachineReady(true);
-
-                                    if (m_UpstreamGoodBoardAvailable || m_UpstreamBadBoardAvailable)
+                                    if (isAdjustmentRequired())
                                     {
-                                        isBadBoard = false;
-                                        if (m_UpstreamBadBoardAvailable)
-                                        {
-                                            isBadBoard = true;
-                                        }
-
-                                        StartTransportIn();
-                                        ChangeTransportState(TransportState.TransportingIn);
+                                        StartAdjusting();
+                                        ChangeTransportState(TransportState.Adjusting);
                                     }
                                     else
                                     {
-                                        ChangeTransportState(TransportState.MachineReady);
+                                        MachineReady(true);
+
+                                        if (m_UpstreamGoodBoardAvailable || m_UpstreamBadBoardAvailable)
+                                        {
+                                            isBadBoard = false;
+                                            if (m_UpstreamBadBoardAvailable)
+                                            {
+                                                isBadBoard = true;
+                                            }
+
+                                            StartTransportIn();
+                                            ChangeTransportState(TransportState.TransportingIn);
+                                        }
+                                        else
+                                        {
+                                            ChangeTransportState(TransportState.MachineReady);
+                                        }
                                     }
                                 }
                                 break;
@@ -433,8 +525,58 @@ namespace MultiPlug.Ext._4IR.SMTMachine.Components.Machine
                         }
                         break;
 
+                    case TransportState.Adjusting:
+                        if(m_Adjusting == false)
+                        {
+                            MachineReady(true);
+
+                            if (m_UpstreamGoodBoardAvailable || m_UpstreamBadBoardAvailable)
+                            {
+                                isBadBoard = false;
+                                if (m_UpstreamBadBoardAvailable)
+                                {
+                                    isBadBoard = true;
+                                }
+
+                                StartTransportIn();
+                                ChangeTransportState(TransportState.TransportingIn);
+                            }
+                            else
+                            {
+                                ChangeTransportState(TransportState.MachineReady);
+                            }
+                        }
+                        break;
+
                 }
             }
+        }
+
+        private bool isAdjustmentRequired()
+        {
+            if(NewWidthValue != string.Empty)
+            {
+                float N;
+                if(float.TryParse(NewWidthValue, out N))
+                {
+                    if (N != Width)
+                    {
+                        return true;
+                    }
+                    else
+                    {
+                        if (AutomaticAdjustmentsFeedback.Value) // Feedback Option
+                        {
+                            AutomaticAdjustmentsEvent.Invoke(new Payload(AutomaticAdjustmentsEvent.Id, new PayloadSubject[]
+                            {
+                                new PayloadSubject(AutomaticAdjustmentsEvent.Subjects[0], AutomaticAdjustmentsEvent.OkayValue),
+                            }));
+                        }
+                    }
+                }
+            }
+
+            return false;
         }
 
         private void OnSMEMAUpstreamGoodBoardAvailable(SubscriptionEvent theEvent)
@@ -545,7 +687,24 @@ namespace MultiPlug.Ext._4IR.SMTMachine.Components.Machine
                     UpdateSubscriptions = true;
                 }
             }
-            if(theUpdatedProperties.DurationTransportIn != null)
+
+            if (theUpdatedProperties.AutomaticAdjustmentsEvent != null )
+            {
+                if(AdjustmentsEvent.Merge(AutomaticAdjustmentsEvent, theUpdatedProperties.AutomaticAdjustmentsEvent, true))
+                {
+                    UpdateEvents = true;
+                }
+            }
+
+            if(theUpdatedProperties.AutomaticAdjustmentsSubscription != null)
+            {
+                if(Subscription.Merge(AutomaticAdjustmentsSubscription, theUpdatedProperties.AutomaticAdjustmentsSubscription))
+                {
+                    UpdateSubscriptions = true;
+                }
+            }
+
+            if (theUpdatedProperties.DurationTransportIn != null)
             {
                 DurationTransportIn = theUpdatedProperties.DurationTransportIn;
             }
@@ -560,6 +719,14 @@ namespace MultiPlug.Ext._4IR.SMTMachine.Components.Machine
             if (theUpdatedProperties.DurationReset != null)
             {
                 DurationReset = theUpdatedProperties.DurationReset;
+            }
+            if (theUpdatedProperties.AutomaticAdjustmentsSpeed != null)
+            {
+                AutomaticAdjustmentsSpeed = theUpdatedProperties.AutomaticAdjustmentsSpeed;
+            }
+            if(theUpdatedProperties.AutomaticAdjustmentsFeedback != null)
+            {
+                AutomaticAdjustmentsFeedback = theUpdatedProperties.AutomaticAdjustmentsFeedback;
             }
 
             if (UpdateSubscriptions)

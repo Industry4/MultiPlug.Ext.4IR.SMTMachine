@@ -11,5 +11,8 @@ namespace MultiPlug.Ext._4IR.SMTMachine.Models.Apps
         public int DurationProcessing { get; set; }
         public int DurationTransportOut { get; set; }
         public int DurationReset { get; set; }
+        public string WidthDescription { get; internal set; }
+        public int AutomaticAdjustmentsSpeed { get; internal set; }
+        public bool AutomaticAdjustmentsFeedback { get; internal set; }
     }
 }

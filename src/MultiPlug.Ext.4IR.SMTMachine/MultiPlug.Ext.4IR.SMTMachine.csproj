@@ -65,6 +65,7 @@
     <Compile Include="Models\Apps\AboutModel.cs" />
     <Compile Include="Models\Apps\MimicAppModel.cs" />
     <Compile Include="Models\Apps\SettingsHomeModel.cs" />
+    <Compile Include="Models\Exchange\AdjustmentsEvent.cs" />
     <Compile Include="Models\Exchange\ReadyEvent.cs" />
     <Compile Include="Models\Exchange\ReadySubscription.cs" />
     <Compile Include="Models\Load\Root.cs" />
@@ -89,4 +90,7 @@
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>xcopy "$(ProjectDir)bin\$(ConfigurationName)\MultiPlug.Ext.4IR.SMTMachine.dll" "C:\projects\i4Core\Connector\MultiPlug.CLI\bin\Debug\extensions\MultiPlug.Ext.4IR.SMTMachine" /Y /I</PostBuildEvent>
+  </PropertyGroup>
 </Project>

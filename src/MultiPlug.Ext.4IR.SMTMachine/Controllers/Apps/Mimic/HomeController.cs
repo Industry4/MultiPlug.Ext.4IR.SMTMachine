@@ -26,13 +26,16 @@ namespace MultiPlug.Ext._4IR.SMTMachine.Controllers.Apps.Mimic
                     DurationTransportIn = Core.Instance.Machine.DurationTransportIn.Value,
                     DurationProcessing = Core.Instance.Machine.DurationProcessing.Value,
                     DurationTransportOut = Core.Instance.Machine.DurationTransportOut.Value,
-                    DurationReset = Core.Instance.Machine.DurationReset.Value
-
+                    DurationReset = Core.Instance.Machine.DurationReset.Value,
+                    WidthDescription = Core.Instance.Machine.Width.Value.ToString(),
+                    AutomaticAdjustmentsSpeed = Core.Instance.Machine.AutomaticAdjustmentsSpeed.Value,
+                    AutomaticAdjustmentsFeedback = Core.Instance.Machine.AutomaticAdjustmentsFeedback.Value
                 },
                 Subscriptions = new Subscription[]
                 {
                     new Subscription("TransportStateEventId", Core.Instance.Machine.TransportStateEvent.Id ),
-                    new Subscription("CoverStateEventId", Core.Instance.Machine.CoverStateEvent.Id )
+                    new Subscription("CoverStateEventId", Core.Instance.Machine.CoverStateEvent.Id ),
+                    new Subscription("WidthStateEventId", Core.Instance.Machine.WidthStateEvent.Id )
                 },
                 Template = Templates.AppsMimic
             };
@@ -46,7 +49,9 @@ namespace MultiPlug.Ext._4IR.SMTMachine.Controllers.Apps.Mimic
                 DurationTransportIn = theModel.DurationTransportIn,
                 DurationProcessing = theModel.DurationProcessing,
                 DurationTransportOut = theModel.DurationTransportOut,
-                DurationReset = theModel.DurationReset
+                DurationReset = theModel.DurationReset,
+                AutomaticAdjustmentsSpeed = theModel.AutomaticAdjustmentsSpeed,
+                AutomaticAdjustmentsFeedback = theModel.AutomaticAdjustmentsFeedback
             });
 
             return new Response
